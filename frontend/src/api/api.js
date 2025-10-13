@@ -60,9 +60,10 @@ export const api = {
     }),
 
   // Orders
-  getOrders: (params = {}) => {
+  getOrders: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    return fetchJSON(`/orders${query ? `?${query}` : ''}`);
+    const res = await fetchJSON(`/orders${query ? `?${query}` : ''}`);
+    return res.orders || res.data?.orders || res;
   },
   
   createOrder: (orderData) => 
@@ -71,14 +72,20 @@ export const api = {
       body: JSON.stringify(orderData)
     }),
   
-  updateOrderStatus: (id, status) => 
-    fetchJSON(`/orders/${id}/status`, {
+  updateOrderStatus: (orderId, status) =>
+    fetchJSON(`/orders/${orderId}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status })
     }),
+  
+  getOrderById: (orderId) => fetchJSON(`/orders/${orderId}`),
 
   // Menu
-  getMenu: () => fetchJSON('/menu'),
+  getMenu: async (params = {}) => {
+    const query = new URLSearchParams({ limit: '500', ...params }).toString();
+    const res = await fetchJSON(`/menu${query ? `?${query}` : ''}`);
+    return res.items || res;
+  },
   
   createMenuItem: (itemData) => 
     fetchJSON('/menu', {
@@ -87,7 +94,10 @@ export const api = {
     }),
 
   // Customers
-  getCustomers: () => fetchJSON('/customers'),
+  getCustomers: async () => {
+    const res = await fetchJSON('/customers');
+    return res.customers || res.data?.customers || res;
+  },
   
   createCustomer: (customerData) => 
     fetchJSON('/customers', {
@@ -175,6 +185,12 @@ export const api = {
     const res = await fetchJSON('/inventory/alerts/low-stock');
     return res.data ?? res;
   },
+  
+  updateInventoryItem: (id, data) =>
+    fetchJSON(`/inventory/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    }),
 
   // Reviews
   getReviews: () => fetchJSON('/reviews'),
@@ -184,6 +200,23 @@ export const api = {
   // Unwrap to data so reports and reviews pages read fields directly
   getReviewStats: async () => {
     const res = await fetchJSON('/reviews/stats/overview');
+    return res.data ?? res;
+  },
+
+  // Payments
+  getPayments: async () => {
+    const res = await fetchJSON('/payments');
+    return res.data?.payments || res.payments || res;
+  },
+  
+  createPayment: (paymentData) => 
+    fetchJSON('/payments', {
+      method: 'POST',
+      body: JSON.stringify(paymentData)
+    }),
+
+  getPaymentStats: async () => {
+    const res = await fetchJSON('/payments/stats/overview');
     return res.data ?? res;
   }
 };
