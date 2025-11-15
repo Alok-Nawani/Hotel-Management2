@@ -1,5 +1,7 @@
 const { sequelize, Customer, MenuItem, User } = require('../models');
 const bcrypt = require('bcryptjs');
+const models = require('../models');
+const { exportAllTables } = require('../utils/tableExporter');
 
 async function seed(){
   await sequelize.sync({ force: true });
@@ -25,7 +27,10 @@ async function seed(){
     { name: 'Cold Coffee', price: 80, category: 'Beverage' }
   ]);
   
-  console.log('Seeded ✅');
+  // Export all tables to data_tables markdown files
+  await exportAllTables(models);
+  
+  console.log('Seeded ✅ and exported to data_tables/');
   process.exit();
 }
 seed();
